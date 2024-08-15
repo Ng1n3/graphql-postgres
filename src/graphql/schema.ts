@@ -1,14 +1,15 @@
-import { makeSchema } from "nexus"
-import { Query } from "./Query"
+import { makeSchema } from 'nexus';
 import path from 'path';
+import { Mutation } from './Mutation';
+import { Query } from './Query';
 
 export const getSchema = () => {
   const schema = makeSchema({
-    types: [Query],
+    types: [Query, Mutation],
     outputs: {
       schema: path.join(process.cwd(), 'nexus', 'schema.graphql'),
-      typegen: path.join(process.cwd(), 'nexus', 'nexus.ts')
-    }
+      typegen: path.join(process.cwd(), 'nexus', 'nexus.ts'),
+    },
   });
   return schema;
-}
+};
