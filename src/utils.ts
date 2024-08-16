@@ -1,7 +1,7 @@
 import Argon from 'argon2';
 
 export const hashPassword = async (password: string): Promise<string> => {
-  const hashedPassword = await Argon.hash(password);
+  const hashedPassword = await Argon. hash(password);
   return hashedPassword;
 };
 
@@ -12,3 +12,5 @@ export const verifyPassword = async (
   const isCorrect = await Argon.verify(dbPassword, inputPassword);
   return isCorrect;
 };
+
+export const isProd = () => process.env.NODE_ENV === 'production';

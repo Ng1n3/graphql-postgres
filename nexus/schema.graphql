@@ -3,6 +3,7 @@
 
 
 type Mutation {
+  loginUser(password: String, username: String): Boolean
   registerUser(email: String, name: String, password: String, username: String): Boolean
 }
 
