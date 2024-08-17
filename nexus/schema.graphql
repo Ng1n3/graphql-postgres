@@ -8,6 +8,7 @@ type GetMeType {
 
 type Mutation {
   createPost(content: String, title: String): Boolean
+  deletePost(id: ID): Boolean
   loginUser(password: String, username: String): Boolean
   logout: Boolean
   registerUser(email: String, name: String, password: String, username: String): Boolean
@@ -15,7 +16,7 @@ type Mutation {
 
 type PostType {
   content: String
-  createdAt: String
+  createdAt: Float
   id: String
   title: String
   user: UserType
@@ -24,7 +25,8 @@ type PostType {
 
 type Query {
   getMe: GetMeType
-  getPosts: [PostType]
+  getPost(id: String): PostType
+  getPosts(skip: Int = 0, take: Int = 5): [PostType]
   getUsers: [User]
   hello: String
 }
@@ -36,7 +38,7 @@ type User {
 }
 
 type UserType {
-  createdAt: String
+  createdAt: Float
   email: String
   id: String
   name: String

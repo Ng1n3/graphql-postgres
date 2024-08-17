@@ -1,5 +1,9 @@
-import { list, queryType } from 'nexus';
-import { INTERNAL_SERVER_ERROR, NOT_AUTHENTICATED } from '../constants';
+import { intArg, list, queryType, stringArg } from 'nexus';
+import {
+  INTERNAL_SERVER_ERROR,
+  NOT_AUTHENTICATED,
+  NOT_FOUND,
+} from '../constants';
 import { GetAllUsers } from '../GetAllUsersTypes';
 import { GetmeType } from '../GetMeTypes';
 import { IMyContext } from '../interface';
@@ -46,10 +50,66 @@ export const Query = queryType({
     });
     t.list.field('getPosts', {
       type: PostTypes,
-      resolve: async (_, __, { prisma }: IMyContext) => {
+      args: {
+        skip: intArg({ default: 0 }),
+        take: intArg({ default: 5 }),
+      },
+      resolve: async (_, __, { prisma, session }: IMyContext) => {
         try {
-          const posts = await prisma.post.findMany();
+          if (!isAuthenticated(session)) {
+            return new Error(NOT_AUTHENTICATED);
+          }
+
+          const posts = await prisma.post.findMany({
+            select: {
+              content: true,
+              id: true,
+              createdAt: true,
+              user: {
+                select: {
+                  username: true,
+                  id: true,
+                },
+              },
+            },
+          });
           return posts;
+        } catch (error) {
+          console.error(error);
+          return new Error(INTERNAL_SERVER_ERROR);
+        }
+      },
+    });
+    t.field('getPost', {
+      type: PostTypes,
+      args: {
+        id: stringArg(),
+      },
+      resolve: async (_, { id }, { prisma, session }: IMyContext) => {
+        try {
+          if (!isAuthenticated(session)) {
+            return new Error(NOT_AUTHENTICATED);
+          }
+
+          const post = await prisma.post.findUnique({
+            where: { id },
+            select: {
+              content: true,
+              title: true,
+              id: true,
+              createdAt: true,
+              user: {
+                select: {
+                  username: true,
+                  id: true,
+                },
+              },
+            },
+          });
+          if (!post) {
+            return new Error(NOT_FOUND);
+          }
+          return post;
         } catch (error) {
           console.error(error);
           return new Error(INTERNAL_SERVER_ERROR);

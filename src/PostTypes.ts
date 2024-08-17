@@ -8,7 +8,7 @@ export const PostTypes = objectType({
     t.string('userId');
     t.string('title');
     t.string('content');
-    t.string('createdAt');
+    t.float('createdAt');
     t.field('user', {
       type: UserType,
     })

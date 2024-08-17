@@ -7,7 +7,7 @@ export const UserType = objectType({
     t.string('id');
     t.string('name');
     t.string('username');
-    t.string('createdAt');
+    t.float('createdAt');
     t.string('email');
     t.string('password');
     t.list.field('posts', {

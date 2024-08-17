@@ -1,10 +1,11 @@
 import { Post, User } from '@prisma/client';
-import { mutationType, stringArg } from 'nexus';
+import { idArg, mutationType, stringArg } from 'nexus';
 import {
   ALREADY_TAKEN,
   INVALID_CREDENTIALS,
   NOT_AUTHENTICATED,
   NOT_AUTHORIZED,
+  NOT_FOUND,
 } from '../constants';
 import { IMyContext } from '../interface';
 import { hashPassword, isAuthenticated, verifyPassword } from '../utils';
@@ -116,7 +117,7 @@ export const Mutation = mutationType({
       ) => {
         try {
           if (!isAuthenticated(session)) {
-            console.log("Sorry you are not authenticated", session);
+            console.log('Sorry you are not authenticated', session);
             return new Error(NOT_AUTHENTICATED);
           }
           await prisma.post.create({
@@ -139,6 +140,51 @@ export const Mutation = mutationType({
         }
       },
     });
+
+    t.boolean('deletePost', {
+      args: {
+        id: idArg(),
+      },
+      resolve: async (
+        _,
+        { id }: Pick<Post, 'id'>,
+        { prisma, session }: IMyContext
+      ) => {
+        try {
+          if (!isAuthenticated(session)) {
+            console.log('Sorry you are not authenticated', session);
+            return new Error(NOT_AUTHENTICATED);
+          }
+          const post = await prisma.post.findUnique({
+            where: { id },
+            select: {
+              userId: true,
+            },
+          });
+
+          if (!post) {
+            return new Error(NOT_FOUND);
+          } else if (post.userId !== session.userId) {
+            return new Error(NOT_AUTHORIZED);
+          }
+          await prisma.post.delete({
+            where: {
+              id,
+            },
+          });
+          return true;
+        } catch (error) {
+          console.error('error => ', error);
+          const errorCaught = error as any;
+
+          if (errorCaught.code === 'P2002') {
+            const errorMessage = errorCaught.meta.target[0] + ALREADY_TAKEN;
+            return new Error(errorMessage);
+          } else {
+            return new Error(errorCaught.message);
+          }
+        }
+      },
+    });
   },
 });
-
