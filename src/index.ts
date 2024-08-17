@@ -16,13 +16,9 @@ dotenv.config();
 const app: Application = express();
 const RedisClient = new Redis();
 
-// Create RedisStore
-// const RedisStore = RedisSession
-
 app.use(bodyParser.json());
 app.use(
   session({
-    // store: new RedisStore({ client: RedisClient }),
     store: new RedisStore({client: RedisClient}),
     secret: process.env.SESSION_SECRET!,
     name: 'pgql-api',

@@ -1,10 +1,29 @@
-import { User } from '@prisma/client';
+import { Post, User } from '@prisma/client';
 import { mutationType, stringArg } from 'nexus';
+import {
+  ALREADY_TAKEN,
+  INVALID_CREDENTIALS,
+  NOT_AUTHENTICATED,
+  NOT_AUTHORIZED,
+} from '../constants';
 import { IMyContext } from '../interface';
-import { hashPassword, verifyPassword } from '../utils';
+import { hashPassword, isAuthenticated, verifyPassword } from '../utils';
 
 export const Mutation = mutationType({
   definition(t) {
+    t.boolean('logout', {
+      args: {},
+      resolve: (_, __, { session }: IMyContext) => {
+        if (!isAuthenticated(session)) {
+          return new Error(NOT_AUTHENTICATED);
+        }
+        session.destroy((err) => {
+          console.log('Error destroying Session', err);
+        });
+        return true;
+      },
+    });
+
     t.boolean('loginUser', {
       args: {
         password: stringArg(),
@@ -16,6 +35,9 @@ export const Mutation = mutationType({
         { prisma, session }: IMyContext
       ) => {
         try {
+          if (isAuthenticated(session)) {
+            return new Error(NOT_AUTHORIZED);
+          }
           const user = await prisma.user.findUnique({
             where: {
               username: userDetails.username,
@@ -23,7 +45,7 @@ export const Mutation = mutationType({
           });
 
           if (!user) {
-            return new Error('Invalid Credentials');
+            return new Error(INVALID_CREDENTIALS);
           }
 
           const isCorrect = await verifyPassword(
@@ -32,7 +54,7 @@ export const Mutation = mutationType({
           );
 
           if (!isCorrect) {
-            return new Error('Invalid credentials');
+            return new Error(INVALID_CREDENTIALS);
           }
 
           session['userId'] = user.id;
@@ -40,13 +62,7 @@ export const Mutation = mutationType({
         } catch (error) {
           console.error('error => ', error);
           const errorCaught = error as any;
-
-          if (errorCaught.code === 'P2002') {
-            const errorMessage = errorCaught.meta.target[0] + ' Taken already';
-            return new Error(errorMessage);
-          } else {
-            return new Error(errorCaught.message);
-          }
+          return new Error(errorCaught.message);
         }
       },
     });
@@ -61,12 +77,17 @@ export const Mutation = mutationType({
       resolve: async (
         _,
         { ...userDetails }: Omit<User, 'id'>,
-        { prisma }: IMyContext
+        { prisma, session }: IMyContext
       ) => {
         try {
+          if (isAuthenticated(session)) {
+            return new Error(NOT_AUTHORIZED);
+          }
+
           const hashedPassword = await hashPassword(userDetails.password);
           await prisma.user.create({
             data: { ...userDetails, password: hashedPassword },
+            select: { id: true },
           });
           return true;
         } catch (error) {
@@ -74,7 +95,43 @@ export const Mutation = mutationType({
           const errorCaught = error as any;
 
           if (errorCaught.code === 'P2002') {
-            const errorMessage = errorCaught.meta.target[0] + ' Taken already';
+            const errorMessage = errorCaught.meta.target[0] + ALREADY_TAKEN;
+            return new Error(errorMessage);
+          } else {
+            return new Error(errorCaught.message);
+          }
+        }
+      },
+    });
+
+    t.boolean('createPost', {
+      args: {
+        title: stringArg(),
+        content: stringArg(),
+      },
+      resolve: async (
+        _,
+        { ...postDetails }: Pick<Post, 'content' | 'title'>,
+        { prisma, session }: IMyContext
+      ) => {
+        try {
+          if (!isAuthenticated(session)) {
+            console.log("Sorry you are not authenticated", session);
+            return new Error(NOT_AUTHENTICATED);
+          }
+          await prisma.post.create({
+            data: { ...postDetails, userId: session.userId! },
+            select: {
+              id: true,
+            },
+          });
+          return true;
+        } catch (error) {
+          console.error('error => ', error);
+          const errorCaught = error as any;
+
+          if (errorCaught.code === 'P2002') {
+            const errorMessage = errorCaught.meta.target[0] + ALREADY_TAKEN;
             return new Error(errorMessage);
           } else {
             return new Error(errorCaught.message);
@@ -84,3 +141,4 @@ export const Mutation = mutationType({
     });
   },
 });
+

@@ -28,8 +28,33 @@ export interface NexusGenScalars {
 }
 
 export interface NexusGenObjects {
+  GetMeType: { // root type
+    userId?: string | null; // String
+  }
   Mutation: {};
+  PostType: { // root type
+    content?: string | null; // String
+    createdAt?: string | null; // String
+    id?: string | null; // String
+    title?: string | null; // String
+    user?: NexusGenRootTypes['UserType'] | null; // UserType
+    userId?: string | null; // String
+  }
   Query: {};
+  User: { // root type
+    email?: string | null; // String
+    id?: string | null; // String
+    name?: string | null; // String
+  }
+  UserType: { // root type
+    createdAt?: string | null; // String
+    email?: string | null; // String
+    id?: string | null; // String
+    name?: string | null; // String
+    password?: string | null; // String
+    posts?: Array<NexusGenRootTypes['PostType'] | null> | null; // [PostType]
+    username?: string | null; // String
+  }
 }
 
 export interface NexusGenInterfaces {
@@ -43,27 +68,91 @@ export type NexusGenRootTypes = NexusGenObjects
 export type NexusGenAllTypes = NexusGenRootTypes & NexusGenScalars
 
 export interface NexusGenFieldTypes {
+  GetMeType: { // field return type
+    userId: string | null; // String
+  }
   Mutation: { // field return type
+    createPost: boolean | null; // Boolean
     loginUser: boolean | null; // Boolean
+    logout: boolean | null; // Boolean
     registerUser: boolean | null; // Boolean
   }
+  PostType: { // field return type
+    content: string | null; // String
+    createdAt: string | null; // String
+    id: string | null; // String
+    title: string | null; // String
+    user: NexusGenRootTypes['UserType'] | null; // UserType
+    userId: string | null; // String
+  }
   Query: { // field return type
+    getMe: NexusGenRootTypes['GetMeType'] | null; // GetMeType
+    getPosts: Array<NexusGenRootTypes['PostType'] | null> | null; // [PostType]
+    getUsers: Array<NexusGenRootTypes['User'] | null> | null; // [User]
     hello: string | null; // String
+  }
+  User: { // field return type
+    email: string | null; // String
+    id: string | null; // String
+    name: string | null; // String
+  }
+  UserType: { // field return type
+    createdAt: string | null; // String
+    email: string | null; // String
+    id: string | null; // String
+    name: string | null; // String
+    password: string | null; // String
+    posts: Array<NexusGenRootTypes['PostType'] | null> | null; // [PostType]
+    username: string | null; // String
   }
 }
 
 export interface NexusGenFieldTypeNames {
+  GetMeType: { // field return type name
+    userId: 'String'
+  }
   Mutation: { // field return type name
+    createPost: 'Boolean'
     loginUser: 'Boolean'
+    logout: 'Boolean'
     registerUser: 'Boolean'
   }
+  PostType: { // field return type name
+    content: 'String'
+    createdAt: 'String'
+    id: 'String'
+    title: 'String'
+    user: 'UserType'
+    userId: 'String'
+  }
   Query: { // field return type name
+    getMe: 'GetMeType'
+    getPosts: 'PostType'
+    getUsers: 'User'
     hello: 'String'
+  }
+  User: { // field return type name
+    email: 'String'
+    id: 'String'
+    name: 'String'
+  }
+  UserType: { // field return type name
+    createdAt: 'String'
+    email: 'String'
+    id: 'String'
+    name: 'String'
+    password: 'String'
+    posts: 'PostType'
+    username: 'String'
   }
 }
 
 export interface NexusGenArgTypes {
   Mutation: {
+    createPost: { // args
+      content?: string | null; // String
+      title?: string | null; // String
+    }
     loginUser: { // args
       password?: string | null; // String
       username?: string | null; // String

@@ -2,11 +2,45 @@
 ### Do not make changes to this file directly
 
 
+type GetMeType {
+  userId: String
+}
+
 type Mutation {
+  createPost(content: String, title: String): Boolean
   loginUser(password: String, username: String): Boolean
+  logout: Boolean
   registerUser(email: String, name: String, password: String, username: String): Boolean
 }
 
+type PostType {
+  content: String
+  createdAt: String
+  id: String
+  title: String
+  user: UserType
+  userId: String
+}
+
 type Query {
+  getMe: GetMeType
+  getPosts: [PostType]
+  getUsers: [User]
   hello: String
+}
+
+type User {
+  email: String
+  id: String
+  name: String
+}
+
+type UserType {
+  createdAt: String
+  email: String
+  id: String
+  name: String
+  password: String
+  posts: [PostType]
+  username: String
 }

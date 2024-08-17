@@ -5,7 +5,6 @@ import Redis from 'ioredis';
 
 export interface ISession extends Session, SessionData {
   userId?: string;
-
 }
 
 export interface IMyContext {
